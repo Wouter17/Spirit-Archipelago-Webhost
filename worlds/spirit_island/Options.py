@@ -139,6 +139,26 @@ class MaxCardplays(Range):
     default = 0
 
 
+class StartingBlight(Range):
+    """The starting amount blight offset the game starts with (-1 would mean you start with 1 fewer blight)
+    """
+    display_name = "Starting blight offset"
+    range_start = -3
+    range_end = 0
+    default = 0
+
+
+class MaxBlight(Range):
+    """The final amount blight offset when all '+ Blight' check have been collected (-1 would mean you always have at least with 1 fewer blight)
+
+    This value needs to be higher than or equal to the starting blight offset
+   """
+    display_name = "Ending blight offset"
+    range_start = 0
+    range_end = 3
+    default = 0
+
+
 class DeathLink(Choice):
     """DeathLink is an opt-in feature for Multiworlds where individual death events are propagated to all games with DeathLink enabled.
 
@@ -175,7 +195,7 @@ class LockNotInPlayCards(SpiritIslandOnToggle):
 
 si_option_groups = [
     OptionGroup("Energy and Cardplays", [
-        StartingEnergy, MaxEnergy, StartingCardplays, MaxCardplays
+        StartingEnergy, MaxEnergy, StartingCardplays, MaxCardplays, StartingBlight, MaxBlight
     ]),
     OptionGroup("Unlocks", [
         EnabledExpansions, SpiritPlayOptionSet, LockNotInPlayCards
@@ -189,8 +209,12 @@ class SpiritIslandOptions(PerGameCommonOptions):
     enabled_expansions: EnabledExpansions
     spirit_play: SpiritPlayOptionSet
     deathlink: DeathLink
+
     starting_energy: StartingEnergy
     max_energy: MaxEnergy
     starting_cardplays: StartingCardplays
     max_cardplays: MaxCardplays
+    starting_blight: StartingBlight
+    max_blight: MaxBlight
+
     lock_not_in_play_cards: LockNotInPlayCards

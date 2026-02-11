@@ -106,6 +106,7 @@ class SpiritIslandWorld(World):
 
         self.gen_offset = abs(self.options.max_energy - self.options.starting_energy) \
             + abs(self.options.max_cardplays - self.options.starting_cardplays) \
+            + abs(self.options.max_blight - self.options.starting_blight) \
             - len(unique_pool) \
             - sum(max_pair.values())
 
@@ -170,6 +171,12 @@ class SpiritIslandWorld(World):
                 self.create_item("+1 Cardplay", ItemClassification.useful)
             )
 
+        # Blight progression
+        for _ in range(self.options.starting_blight, self.options.max_blight):
+            self.itempool.append(
+                self.create_item("+1 Blight", ItemClassification.useful)
+            )
+
         enabled_sources = {ContentSource(key)
                            for key in self.options.enabled_expansions.value}
 
@@ -214,6 +221,7 @@ class SpiritIslandWorld(World):
             "base_locked_cards": card_pool,
             "base_energy_offset": self.options.starting_energy.value,
             "base_cardplay_offset": self.options.starting_cardplays.value,
+            "base_blight_offset": self.options.starting_blight.value,
             "deathlink": self.options.deathlink.value,
             "goals": goals
         }

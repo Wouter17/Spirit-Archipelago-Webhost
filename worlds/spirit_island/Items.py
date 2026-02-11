@@ -15,7 +15,7 @@ si_base = 0x57696c6c
 item_id_to_name: dict[int, str] = {}
 item_name_to_id: dict[str, int] = {}
 
-items = ["+1 Energy", "+1 Cardplay"] + [(card.value) for card in Powercard] + filler_items
+items = ["+1 Energy", "+1 Cardplay", "+1 Blight"] + [(card.value) for card in Powercard] + filler_items
 
 for i,item in enumerate(items):
     idx = i + si_base
@@ -33,3 +33,4 @@ item_name_groups["filler"] = set(filler_items)
 item_descriptions = dict.fromkeys(filler_items, "an item that does nothing")
 item_descriptions["+1 Energy"] = "One extra energy per turn with each spirit"
 item_descriptions["+1 Cardplay"] = "One extra cardplay per turn with each spirit"
+item_descriptions["+1 Blight"] = "One extra blight when starting a new game"

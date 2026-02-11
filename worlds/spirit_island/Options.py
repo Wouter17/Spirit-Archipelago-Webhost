@@ -26,12 +26,15 @@ def map_str_to_spirit_aspect(spirit_raw: str) -> Spirit | Aspect | None:
     try:
         if aspect_name is not None:
             return Aspect(aspect_name)
+        if spirit_name == "Any":
+            return None
         return Spirit(spirit_name)
-    except ValueError:
-        return None
+    except ValueError as err:
+        raise OptionError(
+            f"{spirit_raw} is not a valid spirit option") from err
 
 
-def parse_boss_option(entry: str) -> tuple[Adversary, int, Spirit | Aspect]:
+def parse_boss_option(entry: str) -> tuple[Adversary, int, Spirit | Aspect | None]:
     boss_raw, spirit_raw, difficulty_raw = [
         x.strip() for x in entry.split("|")]
 
@@ -47,10 +50,11 @@ def parse_boss_option(entry: str) -> tuple[Adversary, int, Spirit | Aspect]:
         raise OptionError(
             f"Difficulty must be an integer in '{entry}', got '{difficulty_raw}'") from err
 
-    spirit = map_str_to_spirit_aspect(spirit_raw)
-    if spirit is None:
+    try:
+        spirit = map_str_to_spirit_aspect(spirit_raw)
+    except OptionError as err:
         raise OptionError(
-            f"Spirit must be an Spirit in '{entry}', got '{spirit_raw}'")
+            f"Spirit must be an Spirit in '{entry}', got '{spirit_raw}'") from err
     return adversary, difficulty, spirit
 
 
@@ -85,13 +89,13 @@ class BossGoals(OptionSet):
         Selecting many goals may introduce a lot of useless filler items.
     """
     display_name = "Victory Goals"
-    valid_keys = sorted([f"{adv.value} | {spirit.full_name} | {diff}"
+    valid_keys = sorted([f"{adv.value} | {spirit_name} | {diff}"
                          for adv in Adversary
-                         for spirit in list(Spirit) + list(Aspect)
+                         for spirit_name in (*(spirit.full_name for spirit in list(Spirit) + list(Aspect)), "Any")
                          for diff in range(0, 7)])
 
     @property
-    def parsed(self) -> list[tuple[Adversary, int, Spirit | Aspect]]:
+    def parsed(self) -> list[tuple[Adversary, int, Spirit | Aspect | None]]:
         return [parse_boss_option(line) for line in self.value]
 
 

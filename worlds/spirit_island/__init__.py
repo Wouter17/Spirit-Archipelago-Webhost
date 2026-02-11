@@ -97,7 +97,7 @@ class SpiritIslandWorld(World):
             s) for s in self.options.spirit_play.value) if sa is not None]
         unique_pool = {unique for spirit_aspect in selected_spirits_and_aspects for unique in spirit_aspect.uniques}
 
-        max_pair: dict[tuple[Adversary, Spirit | Aspect], int] = {}
+        max_pair: dict[tuple[Adversary, Spirit | Aspect | None], int] = {}
         for boss, difficulty, spirit in self.options.goals.parsed:
             difficulty_offset = difficulty + 1
             key = (boss, spirit)
@@ -139,7 +139,7 @@ class SpiritIslandWorld(World):
 
         # Boss locations
         for boss, difficulty, spirit in sorted(self.options.goals.parsed,
-            key=lambda x: (x[0].value, x[2].value, x[1]), reverse=True):
+            key=lambda x: (x[0].value, x[2].value if x[2] is not None else "", x[1]), reverse=True):
             # prevent duplicate goals
             if previous == (boss, spirit):
                 continue
@@ -209,7 +209,7 @@ class SpiritIslandWorld(World):
         card_pool = [card.value for card in Powercard
                             if (self.options.lock_not_in_play_cards.result or (card.expansion in enabled_sources)) \
                             and card.card_type is not CardType.Unique]
-        goals = list(map(defeat_with_string, *self.options.goals.parsed))
+        goals = [defeat_with_string(*goal) for goal in self.options.goals.parsed]
         return {
             "base_locked_cards": card_pool,
             "base_energy_offset": self.options.starting_energy.value,
@@ -248,7 +248,7 @@ class SpiritIslandWorld(World):
 
         region.locations.append(loc)
 
-    def add_boss_location(self, boss: Adversary, difficulty: int, spirit: Spirit | Aspect, goal=False) -> None:
+    def add_boss_location(self, boss: Adversary, difficulty: int, spirit: Spirit | Aspect | None, goal=False) -> None:
         region = self.multiworld.get_region("Island", self.player)
 
         name = defeat_with_string(boss, difficulty, spirit)

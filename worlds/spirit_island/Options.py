@@ -6,6 +6,7 @@ from typing import ClassVar
 from Options import (
     Choice,
     DefaultOnToggle,
+    OptionError,
     OptionGroup,
     OptionSet,
     PerGameCommonOptions,
@@ -33,30 +34,23 @@ def map_str_to_spirit_aspect(spirit_raw: str) -> Spirit | Aspect | None:
 def parse_boss_option(entry: str) -> tuple[Adversary, int, Spirit | Aspect]:
     boss_raw, spirit_raw, difficulty_raw = [
         x.strip() for x in entry.split("|")]
+
     try:
         adversary = Adversary(boss_raw)
-    except ValueError:
-        raise Exception(
-            f"Adversary must be an Adversary in '{entry}', got '{boss_raw}'. Please contact a developer.") from None
+    except ValueError as err:
+        raise OptionError(
+            f"Adversary must be an Adversary in '{entry}', got '{boss_raw}'.") from err
+
     try:
         difficulty = int(difficulty_raw)
-    except ValueError:
-        raise Exception(
-            f"Difficulty must be an integer in '{entry}', got '{difficulty_raw}'.\
-                  Please contact a developer.") from None
-    try:
-        spirit_match = re.fullmatch(
-            r"\s*([^()]+?)\s*(?:\(([^()]+)\))?\s*", spirit_raw)
-        if not spirit_match:
-            raise Exception(f"No match in {spirit_raw}")
-        spirit_name, aspect_name = spirit_match.groups()
-        if aspect_name is not None:
-            spirit = Aspect(aspect_name)
-        else:
-            spirit = Spirit(spirit_name)
-    except ValueError:
-        raise Exception(
-            f"Spirit must be an Spirit in '{entry}', got '{spirit_raw}'. Please contact a developer.") from None
+    except ValueError as err:
+        raise OptionError(
+            f"Difficulty must be an integer in '{entry}', got '{difficulty_raw}'") from err
+
+    spirit = map_str_to_spirit_aspect(spirit_raw)
+    if spirit is None:
+        raise OptionError(
+            f"Spirit must be an Spirit in '{entry}', got '{spirit_raw}'")
     return adversary, difficulty, spirit
 
 

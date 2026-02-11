@@ -6,7 +6,7 @@ from worlds.AutoWorld import WebWorld, World
 
 from .Items import SpiritIslandItem, filler_items, item_descriptions, item_id_to_name, item_name_groups, item_name_to_id
 from .Locations import SpiritIslandLocation, defeat_with_string, si_location_id_to_name, si_location_name_to_id
-from .Options import SpiritIslandOptions, map_str_to_spirit_aspect, parse_boss_option, si_option_groups
+from .Options import SpiritIslandOptions, map_str_to_spirit_aspect, si_option_groups
 from .SpiritIslandLevels import Adversary, Aspect, CardType, ContentSource, Powercard, Spirit
 
 
@@ -98,12 +98,11 @@ class SpiritIslandWorld(World):
         unique_pool = {unique for spirit_aspect in selected_spirits_and_aspects for unique in spirit_aspect.uniques}
 
         max_pair: dict[tuple[Adversary, Spirit | Aspect], int] = {}
-        for goal in self.options.goals.value:
-            boss, difficulty, spirit = parse_boss_option(goal)
-            difficulty += 1
+        for boss, difficulty, spirit in self.options.goals.parsed:
+            difficulty_offset = difficulty + 1
             key = (boss, spirit)
-            if key not in max_pair or difficulty > max_pair[key]:
-                max_pair[key] = difficulty
+            if key not in max_pair or difficulty_offset > max_pair[key]:
+                max_pair[key] = difficulty_offset
 
         self.gen_offset = abs(self.options.max_energy - self.options.starting_energy) \
             + abs(self.options.max_cardplays - self.options.starting_cardplays) \
@@ -139,7 +138,7 @@ class SpiritIslandWorld(World):
         previous: tuple[None|Adversary, None|Spirit|Aspect] = (None, None)
 
         # Boss locations
-        for (boss, difficulty, spirit) in sorted(map(parse_boss_option, self.options.goals.value),
+        for boss, difficulty, spirit in sorted(self.options.goals.parsed,
             key=lambda x: (x[0].value, x[2].value, x[1]), reverse=True):
             # prevent duplicate goals
             if previous == (boss, spirit):
@@ -210,7 +209,7 @@ class SpiritIslandWorld(World):
         card_pool = [card.value for card in Powercard
                             if (self.options.lock_not_in_play_cards.result or (card.expansion in enabled_sources)) \
                             and card.card_type is not CardType.Unique]
-        goals = [defeat_with_string(*parse_boss_option(g)) for g in self.options.goals.value]
+        goals = list(map(defeat_with_string, *self.options.goals.parsed))
         return {
             "base_locked_cards": card_pool,
             "base_energy_offset": self.options.starting_energy.value,

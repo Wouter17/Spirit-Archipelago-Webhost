@@ -92,9 +92,13 @@ class BossGoals(OptionSet):
     """
     display_name = "Victory Goals"
     valid_keys = sorted([f"{adv.value} | {spirit.full_name} | {diff}"
-                  for adv in Adversary
-                  for spirit in list(Spirit) + list(Aspect)
-                  for diff in range(0, 7)])
+                         for adv in Adversary
+                         for spirit in list(Spirit) + list(Aspect)
+                         for diff in range(0, 7)])
+
+    @property
+    def parsed(self) -> list[tuple[Adversary, int, Spirit | Aspect]]:
+        return [parse_boss_option(line) for line in self.value]
 
 
 class StartingEnergy(Range):
@@ -155,7 +159,8 @@ class SpiritPlayOptionSet(OptionSet):
     """For which spirits should playing unique cards earns you checks"""
     display_name = "Enabled spirit unique checks"
     default: ClassVar[set[str]] = set()
-    valid_keys = sorted([s.full_name for s in Spirit] + [a.full_name for a in Aspect])
+    valid_keys = sorted([s.full_name for s in Spirit] +
+                        [a.full_name for a in Aspect])
 
 
 class EnabledExpansions(OptionSet):
@@ -164,9 +169,11 @@ class EnabledExpansions(OptionSet):
     default: ClassVar[set[str]] = {ContentSource.BASE.value}
     valid_keys = [cs.value for cs in ContentSource]  # noqa: RUF012
 
+
 class LockNotInPlayCards(SpiritIslandOnToggle):
     """Remove minors and majors not selected in 'Card unlocking expansions' from the game"""
     display_name = "Remove not in play cards"
+
 
 si_option_groups = [
     OptionGroup("Energy and Cardplays", [

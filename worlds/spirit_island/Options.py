@@ -1,11 +1,16 @@
-import re  # noqa: N999
+import logging  # noqa: N999
+import re
 from dataclasses import dataclass
 from enum import IntEnum
-from typing import ClassVar
+from random import Random
+from typing import ClassVar, Literal
+
+from schema import And, Optional, Or, Schema
 
 from Options import (
     Choice,
     DefaultOnToggle,
+    OptionDict,
     OptionError,
     OptionGroup,
     OptionSet,
@@ -97,6 +102,133 @@ class BossGoals(OptionSet):
     @property
     def parsed(self) -> list[tuple[Adversary, int, Spirit | Aspect | None]]:
         return [parse_boss_option(line) for line in self.value]
+
+
+class AdvancedBossGoals(OptionDict):
+    """Which spirits, need to defeat which adversaries, at what difficulty, to have completed the game.
+
+        This setting replaces the settings in "Victory Goals" if present.
+        This setting allows you to specify the boss as an yaml in the form.
+        It allows you to weight spirit selection chances.
+        See the Game Page for examples.
+    """
+    display_name = "Advanced Victory Goals"
+
+    Difficulty_schema = And(int, lambda n: 0 <= n <= 10)
+    Adversary_schema = And(str, lambda s: s in Adversary)
+    Spirit_schema = And(str, lambda s: s in [
+                        n.full_name for n in list(Spirit) + list(Aspect)] + ["Any"])
+    Count = And(int, lambda n: n >= 1)
+
+    unweighted_schema: ClassVar = {
+        Difficulty_schema: {
+            Adversary_schema: [Spirit_schema]
+        }
+    }
+
+    weighted_schema: ClassVar = {
+        Optional("min"): Count,
+        Optional("max"): Count,
+
+        Difficulty_schema: {
+            Adversary_schema: {
+                Spirit_schema: Count
+            }
+        }
+    }
+
+    default: ClassVar = {}
+
+    schema = Schema(Or(
+        {},
+        unweighted_schema,
+        weighted_schema
+    ))
+
+    @property
+    def combinations(self) -> int:
+        total = 0
+        for diff, advs in self.value.items():
+            if diff in ("min", "max"):
+                continue
+            for adversary_map in advs.values():
+                total += len(adversary_map)
+        return total
+
+    def verify(self, world, player_name, plando_options):
+        super().verify(world, player_name, plando_options)
+        if "min" in self.value:
+            total = self.combinations
+            if total < self.value["min"]:
+                raise OptionError(f"Minimum selection set to {self.value['min']} spirits, "
+                                  f"but only {total} goals are given")
+
+        if "min" in self.value and "max" in self.value and self.value["max"] < self.value["min"]:
+            raise OptionError(f"Maximum number of spirits ({self.value['max']}) "
+                              f"should be larger than minimum ({self.value['min']})")
+
+    def parsed(self, random: Random) -> None | list[tuple[Adversary, int, Spirit | Aspect | None]]:
+        if self.value == {}:
+            return None
+        weighted_list: list[tuple[tuple[Adversary,
+                                        int, Spirit | Aspect | None], int]] = []
+        unweighted_list: list[tuple[Adversary,
+                                    int, Spirit | Aspect | None]] = []
+        min_count = 1
+        max_count = None
+        for diff, advs in self.value.items():
+            if diff == "min":
+                min_count = int(advs)
+                continue
+            if diff == "max":
+                max_count = int(advs)
+                continue
+            difficulty = int(diff)
+            first_spirit: list[Spirit | Aspect | Literal["Any"]] | dict[Spirit | Aspect | Literal["Any"], int] | None\
+                = next(iter(advs.values()), None)
+            if first_spirit is None:
+                continue
+
+            weighted = isinstance(first_spirit, dict)
+
+            for adversary, spirit_container in advs.items():
+                if weighted:
+                    for spirit, weight in spirit_container.items():
+                        spirit_value = None if spirit == "Any" else map_str_to_spirit_aspect(
+                            spirit)
+                        weighted_list.append(
+                            ((Adversary(adversary), difficulty, spirit_value), weight))
+                else:
+                    for spirit in spirit_container:
+                        spirit_value = None if spirit == "Any" else map_str_to_spirit_aspect(
+                            spirit)
+                        unweighted_list.append(
+                            (Adversary(adversary), difficulty, spirit_value))
+        if not weighted_list and not unweighted_list:
+            return []
+        if weighted_list:
+            return self.randomized(weighted_list, random, min_count, max_count)
+        return unweighted_list
+
+    def randomized(
+            self,
+            lst: list[tuple[tuple[Adversary, int, Spirit | Aspect | None], int]],
+            random: Random,
+            min_count: int,
+            max_count: int | None
+    ) -> list[tuple[Adversary, int, Spirit | Aspect | None]]:
+        max_spirits = self.combinations if max_count is None else max_count
+        total_spirit = random.randint(min_count, max_spirits)
+
+        keys: list[tuple[int, tuple[Adversary, int, Spirit | Aspect | None]]] = []
+        for item, weight in lst:
+            u = random.random()
+            key = u ** (1.0 / weight)
+            keys.append((key, item))
+
+        keys.sort(key=lambda x: x[0], reverse=True)
+
+        return [v for _, v in keys[:total_spirit]]
 
 
 class StartingEnergy(Range):
@@ -206,6 +338,8 @@ si_option_groups = [
 @dataclass
 class SpiritIslandOptions(PerGameCommonOptions):
     goals: BossGoals
+    advanced_goals: AdvancedBossGoals
+
     enabled_expansions: EnabledExpansions
     spirit_play: SpiritPlayOptionSet
     deathlink: DeathLink
@@ -218,3 +352,21 @@ class SpiritIslandOptions(PerGameCommonOptions):
     max_blight: MaxBlight
 
     lock_not_in_play_cards: LockNotInPlayCards
+
+    def __post_init__(self):
+        self.goals_parsed = None
+
+    def parsed_goals(self, random: Random) -> list[tuple[Adversary, int, Spirit | Aspect | None]]:
+        if self.goals_parsed is not None:
+            return self.goals_parsed
+
+        advanced = self.advanced_goals.parsed(random)
+        simple = self.goals.parsed
+        if advanced is not None:
+            if simple:
+                logging.warning("Spirit Island: Both advanced goals and (basic) goals have been specified: "
+                                "ignoring basic goals")
+            self.goals_parsed = advanced
+            return advanced
+        self.goals_parsed = simple
+        return simple

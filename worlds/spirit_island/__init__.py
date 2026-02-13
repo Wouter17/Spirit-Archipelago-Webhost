@@ -11,6 +11,7 @@ from .SpiritIslandLevels import Adversary, Aspect, CardType, ContentSource, Powe
 
 
 class SpiritIslandWeb(WebWorld):
+    rich_text_options_doc = True
     option_groups = si_option_groups
     theme = "grassFlowers"
 
@@ -98,7 +99,7 @@ class SpiritIslandWorld(World):
         unique_pool = {unique for spirit_aspect in selected_spirits_and_aspects for unique in spirit_aspect.uniques}
 
         max_pair: dict[tuple[Adversary, Spirit | Aspect | None], int] = {}
-        for boss, difficulty, spirit in self.options.goals.parsed:
+        for boss, difficulty, spirit in self.options.parsed_goals(self.random):
             difficulty_offset = difficulty + 1
             key = (boss, spirit)
             if key not in max_pair or difficulty_offset > max_pair[key]:
@@ -139,7 +140,7 @@ class SpiritIslandWorld(World):
         previous: tuple[None|Adversary, None|Spirit|Aspect] = (None, None)
 
         # Boss locations
-        for boss, difficulty, spirit in sorted(self.options.goals.parsed,
+        for boss, difficulty, spirit in sorted(self.options.parsed_goals(self.random),
             key=lambda x: (x[0].value, x[2].value if x[2] is not None else "", x[1]), reverse=True):
             # prevent duplicate goals
             if previous == (boss, spirit):
@@ -216,7 +217,7 @@ class SpiritIslandWorld(World):
         card_pool = [card.value for card in Powercard
                             if (self.options.lock_not_in_play_cards.result or (card.expansion in enabled_sources)) \
                             and card.card_type is not CardType.Unique]
-        goals = [defeat_with_string(*goal) for goal in self.options.goals.parsed]
+        goals = [defeat_with_string(*goal) for goal in self.options.parsed_goals(self.random)]
         return {
             "base_locked_cards": card_pool,
             "base_energy_offset": self.options.starting_energy.value,

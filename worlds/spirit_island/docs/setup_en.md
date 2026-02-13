@@ -58,7 +58,7 @@ To completely remove *SI-Modding*, navigate to your game's installation folder a
 ![Sign-In Screen](https://i.imgur.com/AWDEwRe.png)
 
 3. Sign-in with the server address, slot name, and password of the corresponding room you would like to join.
-- Otherwise, if you just want to play the vanilla game without any modifications, you may ignore this window.
+- Otherwise, if you just want to play the vanilla game without any modifications, you may press exit or ignore this window.
 
 4. Upon successful connection to the Archipelago service, the interface will say you are connected and will display your cardplay and energy offsets, and the remaining goals.
 

@@ -36,8 +36,8 @@ Locations can be checked in the following ways:
 ## Advanced settings
 To enter the goals using a yaml structure and/or to have randomized goals, fill in the "Advanced Victory Goals" instead of the "Victory Goals" option.
 
-The spelling of adversaries and spirit/aspect names can be found on the [Spirit Island wiki](https://spiritislandwiki.com/).
-Aspects are formatted as `Spirit-name (Aspect-name)`, just lik in the normal Victory Goals.
+The spelling of adversaries and spirit/aspect names can be found on the [Spirit Island wiki](https://spiritislandwiki.com/).<br/>
+Aspects are formatted as `Spirit-name (Aspect-name)`, just like in the normal Victory Goals.
 
 When not using weights the format is:
 ```yaml

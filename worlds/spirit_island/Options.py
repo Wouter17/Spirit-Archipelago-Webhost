@@ -313,6 +313,29 @@ class SpiritPlayOptionSet(OptionSet):
                         [a.full_name for a in Aspect])
 
 
+class UnlockableSpiritAspects(OptionSet):
+    """Which spirits (and aspects) should be locked by default and unlockable through checks.
+
+    To play an aspect you must first unlock its spirit.
+    """
+    display_name = "Enabled spirit & aspect unlock items"
+    default: ClassVar[set[str]] = set()
+    valid_keys = sorted([s.full_name for s in Spirit] +
+                        [a.full_name for a in Aspect])
+
+    @property
+    def spirits(self) -> list[Spirit]:
+        return [s for s in map(map_str_to_spirit_aspect, self.value) if isinstance(s, Spirit)]
+
+    @property
+    def aspects(self) -> list[Aspect]:
+        return [a for a in map(map_str_to_spirit_aspect, self.value) if isinstance(a, Aspect)]
+
+    @property
+    def parsed(self) -> list[Spirit | Aspect]:
+        return [sa for sa in map(map_str_to_spirit_aspect, self.value) if sa is not None]
+
+
 class EnabledExpansions(OptionSet):
     """Which expansions should be included when creating checks for playing cards"""
     display_name = "Card unlocking expansions"
@@ -330,7 +353,7 @@ si_option_groups = [
         StartingEnergy, MaxEnergy, StartingCardplays, MaxCardplays, StartingBlight, MaxBlight
     ]),
     OptionGroup("Unlocks", [
-        EnabledExpansions, SpiritPlayOptionSet, LockNotInPlayCards
+        EnabledExpansions, SpiritPlayOptionSet, LockNotInPlayCards, UnlockableSpiritAspects
     ])
 ]
 
@@ -342,6 +365,7 @@ class SpiritIslandOptions(PerGameCommonOptions):
 
     enabled_expansions: EnabledExpansions
     spirit_play: SpiritPlayOptionSet
+    spirit_aspect_locked: UnlockableSpiritAspects
     deathlink: DeathLink
 
     starting_energy: StartingEnergy

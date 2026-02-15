@@ -108,6 +108,7 @@ class SpiritIslandWorld(World):
         self.gen_offset = abs(self.options.max_energy - self.options.starting_energy) \
             + abs(self.options.max_cardplays - self.options.starting_cardplays) \
             + abs(self.options.max_blight - self.options.starting_blight) \
+            + len(self.options.spirit_aspect_locked.value) \
             - len(unique_pool) \
             - sum(max_pair.values())
 
@@ -165,17 +166,29 @@ class SpiritIslandWorld(World):
             self.itempool.append(
                 self.create_item("+1 Energy", ItemClassification.useful)
             )
+        if self.options.starting_energy < 0:
+            self.multiworld.early_items[self.player]["+1 Energy"] = -self.options.starting_energy
 
         # Card play progression
         for _ in range(self.options.starting_cardplays, self.options.max_cardplays):
             self.itempool.append(
                 self.create_item("+1 Cardplay", ItemClassification.useful)
             )
+        if self.options.starting_cardplays < 0:
+            self.multiworld.early_items[self.player]["+1 Cardplay"] = -self.options.starting_cardplays
 
         # Blight progression
         for _ in range(self.options.starting_blight, self.options.max_blight):
             self.itempool.append(
                 self.create_item("+1 Blight", ItemClassification.useful)
+            )
+        if self.options.starting_blight < 0:
+            self.multiworld.early_items[self.player]["+1 Blight"] = -self.options.starting_blight
+
+        # Spirit Unlocks
+        for sa in self.options.spirit_aspect_locked.parsed:
+            self.itempool.append(
+                self.create_item(sa.full_name, ItemClassification.progression | ItemClassification.useful)
             )
 
         enabled_sources = {ContentSource(key)
@@ -220,6 +233,8 @@ class SpiritIslandWorld(World):
         goals = [defeat_with_string(*goal) for goal in self.options.parsed_goals(self.random)]
         return {
             "base_locked_cards": card_pool,
+            "base_locked_spirits": [s.value for s in self.options.spirit_aspect_locked.spirits],
+            "base_locked_aspects": [a.value for a in self.options.spirit_aspect_locked.aspects],
             "base_energy_offset": self.options.starting_energy.value,
             "base_cardplay_offset": self.options.starting_cardplays.value,
             "base_blight_offset": self.options.starting_blight.value,
@@ -254,6 +269,8 @@ class SpiritIslandWorld(World):
             region
         )
         loc.progress_type = LocationProgressType.PRIORITY
+        if card.spirit in self.options.spirit_aspect_locked.parsed:
+            loc.access_rule = lambda state, spirit=card.spirit: state.has(spirit.full_name, self.player)
 
         region.locations.append(loc)
 
@@ -268,6 +285,13 @@ class SpiritIslandWorld(World):
             region
         )
         loc.progress_type = LocationProgressType.PRIORITY
+        if spirit in self.options.spirit_aspect_locked.parsed:
+            if isinstance(spirit, Aspect) and spirit.spirit in self.options.spirit_aspect_locked.spirits:
+                loc.access_rule = lambda state, spirit=spirit: \
+                    state.has_all([spirit.full_name, spirit.spirit.value], self.player)
+            else:
+                loc.access_rule = lambda state, spirit=spirit: state.has(spirit.full_name, self.player)
+
         region.locations.append(loc)
 
         if goal:
@@ -282,6 +306,13 @@ class SpiritIslandWorld(World):
 
             victory_item = self.create_event(defeat_with_string(boss, difficulty, spirit, True),
                                             ItemClassification.progression_skip_balancing)
+
+            if spirit in self.options.spirit_aspect_locked.parsed:
+                if isinstance(spirit, Aspect) and spirit.spirit in self.options.spirit_aspect_locked.spirits:
+                    vic_loc.access_rule = lambda state, spirit=spirit: \
+                        state.has_all([spirit.full_name, spirit.spirit.value], self.player)
+                else:
+                    vic_loc.access_rule = lambda state, spirit=spirit: state.has(spirit.full_name, self.player)
 
             # Each boss completion creates a unique event
             region.locations.append(vic_loc)

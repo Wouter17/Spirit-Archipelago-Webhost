@@ -22,6 +22,9 @@ The following items are available in the Randomizer:
 - Minor and Major power cards.
 - Extra energy per turn (+1 Energy)
 - Extra cardplays per turn (+1 Cardplay)
+- Extra blight at the start of the game (+1 Blight)
+- Spirits and aspects unlocks (if `Enabled spirit & aspect unlock items` is selected)
+- Friendly greetings from spirits (filler items)
 
 ## Locations
 

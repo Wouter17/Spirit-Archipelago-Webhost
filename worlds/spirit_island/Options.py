@@ -73,6 +73,10 @@ class DeathLinkMode(IntEnum):
     disabled = 0
     lost_game = 1
 
+class HintCardsMode(IntEnum):
+    disabled = 0
+    on_hover = 1
+    always = 2
 
 class SpiritIslandOnToggle(DefaultOnToggle):
     @property
@@ -347,6 +351,29 @@ class LockNotInPlayCards(SpiritIslandOnToggle):
     """Remove minors and majors not selected in 'Card unlocking expansions' from the game"""
     display_name = "Remove not in play cards"
 
+class SpoilLocations(SpiritIslandOnToggle):
+    """Display on the powercards what item they will unlock"""
+    display_name = "Spoil items on cards"
+
+class HintReceivedCards(Choice):
+    """Hint cards that have been added to the deck or are in hand
+
+    - Disabled: No hints.
+
+    - On Hover: Whenever the card is viewed, a hint is generated for what it will unlock.
+
+    - Always: The moment a card is received, a hint is generated for what it will unlock.
+    """
+    auto_display_name = True
+    display_name = "Hint received cards"
+    default = HintCardsMode.always.value
+    option_disabled = HintCardsMode.disabled.value
+    option_on_hover = HintCardsMode.on_hover.value
+    option_always = HintCardsMode.always.value
+
+class PrioritisedShuffle(SpiritIslandOnToggle):
+    """When shuffling the power decks, put cards with unexplored locations on top"""
+    display_name = "Prioritised Shuffle"
 
 si_option_groups = [
     OptionGroup("Energy and Cardplays", [
@@ -354,6 +381,9 @@ si_option_groups = [
     ]),
     OptionGroup("Unlocks", [
         EnabledExpansions, SpiritPlayOptionSet, LockNotInPlayCards, UnlockableSpiritAspects
+    ]),
+    OptionGroup("Hints & Quality of Life", [
+        SpoilLocations, HintReceivedCards, PrioritisedShuffle
     ])
 ]
 
@@ -376,6 +406,9 @@ class SpiritIslandOptions(PerGameCommonOptions):
     max_blight: MaxBlight
 
     lock_not_in_play_cards: LockNotInPlayCards
+    spoil_locations: SpoilLocations
+    hint_received_cards: HintReceivedCards
+    prioritised_shuffle: PrioritisedShuffle
 
     def __post_init__(self):
         self.goals_parsed = None

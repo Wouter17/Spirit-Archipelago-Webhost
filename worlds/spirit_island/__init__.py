@@ -238,6 +238,9 @@ class SpiritIslandWorld(World):
             "base_energy_offset": self.options.starting_energy.value,
             "base_cardplay_offset": self.options.starting_cardplays.value,
             "base_blight_offset": self.options.starting_blight.value,
+            "spoil_locations": self.options.spoil_locations.value,
+            "hint_cards": self.options.hint_received_cards.value,
+            "prioritised_shuffle": self.options.prioritised_shuffle.value,
             "deathlink": self.options.deathlink.value,
             "goals": goals
         }

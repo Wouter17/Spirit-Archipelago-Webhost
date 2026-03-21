@@ -375,6 +375,13 @@ class PrioritisedShuffle(SpiritIslandOnToggle):
     """When shuffling the power decks, put cards with unexplored locations on top"""
     display_name = "Prioritised Shuffle"
 
+class RemoveCardsWhenFill(SpiritIslandToggle):
+    """When the game has more locations than items, reduce the number of powercards to reduce the number of locations.
+
+    Prevents having a lot of filler items, at the cost of losing some major and minor power cards.
+    """
+    display_name = "Remove cards when filling"
+
 si_option_groups = [
     OptionGroup("Energy and Cardplays", [
         StartingEnergy, MaxEnergy, StartingCardplays, MaxCardplays, StartingBlight, MaxBlight
@@ -383,7 +390,7 @@ si_option_groups = [
         EnabledExpansions, SpiritPlayOptionSet, LockNotInPlayCards, UnlockableSpiritAspects
     ]),
     OptionGroup("Hints & Quality of Life", [
-        SpoilLocations, HintReceivedCards, PrioritisedShuffle
+        SpoilLocations, HintReceivedCards, PrioritisedShuffle, RemoveCardsWhenFill
     ])
 ]
 
@@ -409,6 +416,7 @@ class SpiritIslandOptions(PerGameCommonOptions):
     spoil_locations: SpoilLocations
     hint_received_cards: HintReceivedCards
     prioritised_shuffle: PrioritisedShuffle
+    remove_cards_when_fill: RemoveCardsWhenFill
 
     def __post_init__(self):
         self.goals_parsed = None

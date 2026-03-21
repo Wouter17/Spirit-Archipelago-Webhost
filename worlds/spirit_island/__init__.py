@@ -1,3 +1,4 @@
+from collections import defaultdict
 from collections.abc import Callable, Mapping
 from typing import Any, TextIO
 
@@ -88,29 +89,8 @@ class SpiritIslandWorld(World):
 
     # Autoworld Hooks
 
-    gen_offset = 0
-    """Offset for items-locations (positive if items > locations)"""
-
     def generate_early(self):
         self.pre_fill_item_placement = []
-
-        selected_spirits_and_aspects = [sa for sa in (map_str_to_spirit_aspect(
-            s) for s in self.options.spirit_play.value) if sa is not None]
-        unique_pool = {unique for spirit_aspect in selected_spirits_and_aspects for unique in spirit_aspect.uniques}
-
-        max_pair: dict[tuple[Adversary, Spirit | Aspect | None], int] = {}
-        for boss, difficulty, spirit in self.options.parsed_goals(self.random):
-            difficulty_offset = difficulty + 1
-            key = (boss, spirit)
-            if key not in max_pair or difficulty_offset > max_pair[key]:
-                max_pair[key] = difficulty_offset
-
-        self.gen_offset = abs(self.options.max_energy - self.options.starting_energy) \
-            + abs(self.options.max_cardplays - self.options.starting_cardplays) \
-            + abs(self.options.max_blight - self.options.starting_blight) \
-            + len(self.options.spirit_aspect_locked.value) \
-            - len(unique_pool) \
-            - sum(max_pair.values())
 
     def create_regions(self) -> None:
         self.add_region("Menu")
@@ -128,11 +108,31 @@ class SpiritIslandWorld(World):
         # Power card locations
         enabled_sources = {ContentSource(key)
                            for key in self.options.enabled_expansions.value}
-        card_pool = [card for card in Powercard if \
+        base_card_pool = {card for card in Powercard if \
                 card.expansion in enabled_sources and \
-                card.card_type is not CardType.Unique and \
-                card not in unique_pool]
-        card_pool = card_pool[:self.gen_offset] if self.gen_offset < 0 else card_pool
+                card.card_type is not CardType.Unique}
+        overlap_count = len(base_card_pool & unique_pool)
+        card_pool = [card for card in base_card_pool if card not in unique_pool]
+
+        if self.options.remove_cards_when_fill.value:
+            # Calculate number of checks due to adversary
+            max_pair: defaultdict[tuple[Adversary, Spirit | Aspect | None], int] = defaultdict(int)
+            for boss, difficulty, spirit in self.options.parsed_goals(self.random):
+                difficulty_offset = difficulty + 1
+                key = (boss, spirit)
+                if difficulty_offset > max_pair[key]:
+                    max_pair[key] = difficulty_offset
+
+            # Offset for items-locations (positive if items > locations)
+            gen_offset: int = abs(self.options.max_energy - self.options.starting_energy) \
+                + abs(self.options.max_cardplays - self.options.starting_cardplays) \
+                + abs(self.options.max_blight - self.options.starting_blight) \
+                + len(self.options.spirit_aspect_locked.value) \
+                - (len(unique_pool) - overlap_count) \
+                - sum(max_pair.values())
+
+            if gen_offset < 0:
+                card_pool = card_pool[:gen_offset]
 
         for card in card_pool:
             self.add_powercard_location(card)
@@ -203,8 +203,7 @@ class SpiritIslandWorld(World):
                     card.value, ItemClassification.progression_deprioritized)
             )
 
-        remaining = sum(1 for loc in self.multiworld.get_locations(self.player) if not loc.locked) \
-            - len(self.itempool)
+        remaining = len(self.multiworld.get_unfilled_locations(self.player)) - len(self.itempool)
         random_filler_items = [self.get_filler_item_name() for _ in range(remaining)]
         for item_name in random_filler_items:
             self.itempool.append(self.create_item(item_name, ItemClassification.filler))

@@ -233,7 +233,7 @@ class SpiritIslandWorld(World):
         return {
             "base_locked_cards": card_pool,
             "base_locked_spirits": [s.value for s in self.options.spirit_aspect_locked.spirits],
-            "base_locked_aspects": [a.value for a in self.options.spirit_aspect_locked.aspects],
+            "base_locked_aspects": [a.full_name for a in self.options.spirit_aspect_locked.aspects],
             "base_energy_offset": self.options.starting_energy.value,
             "base_cardplay_offset": self.options.starting_cardplays.value,
             "base_blight_offset": self.options.starting_blight.value,

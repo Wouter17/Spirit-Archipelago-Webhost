@@ -311,7 +311,7 @@ class DeathLink(Choice):
 
 class SpiritPlayOptionSet(OptionSet):
     """For which spirits should playing unique cards earns you checks"""
-    display_name = "Enabled spirit unique checks"
+    display_name = "Spirit unique checks"
     default: ClassVar[set[str]] = set()
     valid_keys = sorted([s.full_name for s in Spirit] +
                         [a.full_name for a in Aspect])
@@ -322,7 +322,7 @@ class UnlockableSpiritAspects(OptionSet):
 
     To play an aspect you must first unlock its spirit.
     """
-    display_name = "Enabled spirit & aspect unlock items"
+    display_name = "Unlockable spirits & aspects"
     default: ClassVar[set[str]] = set()
     valid_keys = sorted([s.full_name for s in Spirit] +
                         [a.full_name for a in Aspect])
@@ -382,6 +382,23 @@ class RemoveCardsWhenFill(SpiritIslandToggle):
     """
     display_name = "Remove cards when filling"
 
+class SpiritShards(Range):
+    """Divides the unlocks for spirits and aspects across that many items."""
+    display_name = "Spirit Shards"
+    default = 1
+    range_start = 1
+    range_end = 10
+
+class ExtraCopiesOfSpirits(Range):
+    """Adds (up to this many) extra copies of spirit and aspect unlocking items.
+
+    Does not increase the amount of items required to unlock the spirit/aspect.
+    """
+    display_name = "Extra copies of spirits and aspects"
+    default = 0
+    range_start = 0
+    range_end = 3
+
 si_option_groups = [
     OptionGroup("Energy and Cardplays", [
         StartingEnergy, MaxEnergy, StartingCardplays, MaxCardplays, StartingBlight, MaxBlight
@@ -391,6 +408,9 @@ si_option_groups = [
     ]),
     OptionGroup("Hints & Quality of Life", [
         SpoilLocations, HintReceivedCards, PrioritisedShuffle, RemoveCardsWhenFill
+    ]),
+    OptionGroup("Sharding & Filler", [
+        SpiritShards, ExtraCopiesOfSpirits
     ])
 ]
 
@@ -417,6 +437,9 @@ class SpiritIslandOptions(PerGameCommonOptions):
     hint_received_cards: HintReceivedCards
     prioritised_shuffle: PrioritisedShuffle
     remove_cards_when_fill: RemoveCardsWhenFill
+
+    spirit_shards: SpiritShards
+    copies_of_spirit: ExtraCopiesOfSpirits
 
     def __post_init__(self):
         self.goals_parsed = None

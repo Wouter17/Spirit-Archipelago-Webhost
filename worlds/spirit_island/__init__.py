@@ -3,6 +3,7 @@ from collections.abc import Callable, Mapping
 from typing import Any, TextIO
 
 from BaseClasses import CollectionState, ItemClassification, Location, LocationProgressType, Region, Tutorial
+from Options import OptionError
 from worlds.AutoWorld import WebWorld, World
 
 from .Items import SpiritIslandItem, filler_items, item_descriptions, item_id_to_name, item_name_groups, item_name_to_id
@@ -114,23 +115,33 @@ class SpiritIslandWorld(World):
         overlap_count = len(base_card_pool & unique_pool)
         card_pool = [card for card in base_card_pool if card not in unique_pool]
 
+        # Calculate number of checks due to adversary
+        max_pair: defaultdict[tuple[Adversary, Spirit | Aspect | None], int] = defaultdict(int)
+        for boss, difficulty, spirit in self.options.parsed_goals(self.random):
+            difficulty_offset = difficulty + 1
+            key = (boss, spirit)
+            if difficulty_offset > max_pair[key]:
+                max_pair[key] = difficulty_offset
+
+        # Offset for items-locations (positive if items > locations)
+        gen_offset: int = abs(self.options.max_energy - self.options.starting_energy) \
+            + abs(self.options.max_cardplays - self.options.starting_cardplays) \
+            + abs(self.options.max_blight - self.options.starting_blight) \
+            - (len(unique_pool) - overlap_count) \
+            - sum(max_pair.values())
+
+        # Check if sharding not too large and add to offset
+        if len(self.options.spirit_aspect_locked.value) > 0:
+            max_sharding = -gen_offset // len(self.options.spirit_aspect_locked.value)
+            if max_sharding < self.options.spirit_shards.value:
+                if max_sharding > 1:
+                    raise OptionError(f"Not enough locations to shard into {self.options.spirit_shards.value} pieces. "
+                                    f"Maximum possible is {max_sharding}.")
+                raise OptionError(f"Not enough locations, {gen_offset} extra locations required. "
+                                  "Try adding more goals.")
+            gen_offset += self.options.spirit_shards.value * len(self.options.spirit_aspect_locked.value)
+
         if self.options.remove_cards_when_fill.value:
-            # Calculate number of checks due to adversary
-            max_pair: defaultdict[tuple[Adversary, Spirit | Aspect | None], int] = defaultdict(int)
-            for boss, difficulty, spirit in self.options.parsed_goals(self.random):
-                difficulty_offset = difficulty + 1
-                key = (boss, spirit)
-                if difficulty_offset > max_pair[key]:
-                    max_pair[key] = difficulty_offset
-
-            # Offset for items-locations (positive if items > locations)
-            gen_offset: int = abs(self.options.max_energy - self.options.starting_energy) \
-                + abs(self.options.max_cardplays - self.options.starting_cardplays) \
-                + abs(self.options.max_blight - self.options.starting_blight) \
-                + len(self.options.spirit_aspect_locked.value) \
-                - (len(unique_pool) - overlap_count) \
-                - sum(max_pair.values())
-
             if gen_offset < 0:
                 card_pool = card_pool[:gen_offset]
 
@@ -187,8 +198,9 @@ class SpiritIslandWorld(World):
 
         # Spirit Unlocks
         for sa in self.options.spirit_aspect_locked.parsed:
-            self.itempool.append(
+            self.itempool.extend(
                 self.create_item(sa.full_name, ItemClassification.progression | ItemClassification.useful)
+                for _ in range(self.options.spirit_shards.value)
             )
 
         enabled_sources = {ContentSource(key)
@@ -203,7 +215,34 @@ class SpiritIslandWorld(World):
                     card.value, ItemClassification.progression_deprioritized)
             )
 
+        # Filler
         remaining = len(self.multiworld.get_unfilled_locations(self.player)) - len(self.itempool)
+
+        # Extra copy filler
+        extra_copies = []
+        if self.options.copies_of_spirit.value > 0:
+            copies = self.options.copies_of_spirit.value
+            max_copies = remaining // len(self.options.spirit_aspect_locked.value)
+            if copies <= max_copies:
+                extra_copies = [
+                    self.create_item(spirit_aspect.full_name,
+                                     ItemClassification.useful & ItemClassification.filler)
+                    for spirit_aspect in self.options.spirit_aspect_locked.parsed
+                    for _ in range(copies)
+                ]
+            else:
+                spirits = list(self.options.spirit_aspect_locked.parsed)
+                self.random.shuffle(spirits)
+
+                extra_copies = [
+                    self.create_item(spirits[i % len(spirits)].full_name,
+                                    ItemClassification.useful & ItemClassification.filler)
+                    for i in range(remaining)
+                ]
+        self.itempool.extend(extra_copies)
+        remaining -= len(extra_copies)
+
+        # Useless filler
         random_filler_items = [self.get_filler_item_name() for _ in range(remaining)]
         for item_name in random_filler_items:
             self.itempool.append(self.create_item(item_name, ItemClassification.filler))
@@ -237,6 +276,7 @@ class SpiritIslandWorld(World):
             "base_energy_offset": self.options.starting_energy.value,
             "base_cardplay_offset": self.options.starting_cardplays.value,
             "base_blight_offset": self.options.starting_blight.value,
+            "spirit_shards": self.options.spirit_shards.value,
             "spoil_locations": self.options.spoil_locations.value,
             "hint_cards": self.options.hint_received_cards.value,
             "prioritised_shuffle": self.options.prioritised_shuffle.value,
@@ -272,50 +312,53 @@ class SpiritIslandWorld(World):
         )
         loc.progress_type = LocationProgressType.PRIORITY
         if card.spirit in self.options.spirit_aspect_locked.parsed:
-            loc.access_rule = lambda state, spirit=card.spirit: state.has(spirit.full_name, self.player)
+            loc.access_rule = lambda state, \
+                spirit=card.spirit: state.has(spirit.full_name, self.player, self.options.spirit_shards.value)
 
         region.locations.append(loc)
 
     def add_boss_location(self, boss: Adversary, difficulty: int, spirit: Spirit | Aspect | None, goal=False) -> None:
         region = self.multiworld.get_region("Island", self.player)
 
+        shard_count = self.options.spirit_shards.value
+        locked = self.options.spirit_aspect_locked
+
+        def make_access_rule(spirit):
+            if spirit not in locked.parsed:
+                return None
+
+            requirements = [(spirit.full_name, shard_count)]
+
+            if isinstance(spirit, Aspect) and spirit.spirit in locked.spirits:
+                requirements.append((spirit.spirit.value, shard_count))
+
+            return lambda state, reqs=requirements: all(
+                state.has(item, self.player, count) for item, count in reqs
+            )
+
+        def create_location(name, loc_id):
+            loc = SpiritIslandLocation(self.player, name, loc_id, region)
+            loc.progress_type = LocationProgressType.PRIORITY
+
+            rule = make_access_rule(spirit)
+            if rule:
+                loc.access_rule = rule
+
+            region.locations.append(loc)
+            return loc
+
+        # Main boss location
         name = defeat_with_string(boss, difficulty, spirit)
-        loc = SpiritIslandLocation(
-            self.player,
-            name,
-            self.location_name_to_id[name],
-            region
-        )
-        loc.progress_type = LocationProgressType.PRIORITY
-        if spirit in self.options.spirit_aspect_locked.parsed:
-            if isinstance(spirit, Aspect) and spirit.spirit in self.options.spirit_aspect_locked.spirits:
-                loc.access_rule = lambda state, spirit=spirit: \
-                    state.has_all([spirit.full_name, spirit.spirit.value], self.player)
-            else:
-                loc.access_rule = lambda state, spirit=spirit: state.has(spirit.full_name, self.player)
+        create_location(name, self.location_name_to_id[name])
 
-        region.locations.append(loc)
-
+        # Victory condition location
         if goal:
             vic_name = f"{name} (victory condition)"
-            vic_loc = SpiritIslandLocation(
-                self.player,
-                vic_name,
-                None,
-                region
+            vic_loc = create_location(vic_name, None)
+
+            victory_item = self.create_event(
+                defeat_with_string(boss, difficulty, spirit, True),
+                ItemClassification.progression_skip_balancing
             )
-            vic_loc.progress_type = LocationProgressType.PRIORITY
 
-            victory_item = self.create_event(defeat_with_string(boss, difficulty, spirit, True),
-                                            ItemClassification.progression_skip_balancing)
-
-            if spirit in self.options.spirit_aspect_locked.parsed:
-                if isinstance(spirit, Aspect) and spirit.spirit in self.options.spirit_aspect_locked.spirits:
-                    vic_loc.access_rule = lambda state, spirit=spirit: \
-                        state.has_all([spirit.full_name, spirit.spirit.value], self.player)
-                else:
-                    vic_loc.access_rule = lambda state, spirit=spirit: state.has(spirit.full_name, self.player)
-
-            # Each boss completion creates a unique event
-            region.locations.append(vic_loc)
             vic_loc.place_locked_item(victory_item)

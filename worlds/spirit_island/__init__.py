@@ -101,10 +101,13 @@ class SpiritIslandWorld(World):
         # Unique card locations
         selected_spirits_and_aspects = [sa for sa in (map_str_to_spirit_aspect(
             s) for s in self.options.spirit_play.value) if sa is not None]
-        unique_pool = {unique for spirit_aspect in selected_spirits_and_aspects for unique in spirit_aspect.uniques}
+        unique_pool: defaultdict[Powercard, set[Spirit | Aspect]] = defaultdict(set)
+        for spirit_aspect in selected_spirits_and_aspects:
+            for unique in spirit_aspect.uniques:
+                unique_pool[unique].add(spirit_aspect)
 
-        for card in unique_pool:
-            self.add_unique_powercard_location(card)
+        for card, spirits in unique_pool.items():
+            self.add_unique_powercard_location(card, spirits)
 
         # Power card locations
         enabled_sources = {ContentSource(key)
@@ -112,7 +115,7 @@ class SpiritIslandWorld(World):
         base_card_pool = {card for card in Powercard if \
                 card.expansion in enabled_sources and \
                 card.card_type is not CardType.Unique}
-        overlap_count = len(base_card_pool & unique_pool)
+        overlap_count = len(base_card_pool & set(unique_pool))
         card_pool = [card for card in base_card_pool if card not in unique_pool]
 
         # Calculate number of checks due to adversary
@@ -308,7 +311,7 @@ class SpiritIslandWorld(World):
 
         region.locations.append(loc)
 
-    def add_unique_powercard_location(self, card: Powercard) -> None:
+    def add_unique_powercard_location(self, card: Powercard, spirits_aspects: set[Spirit | Aspect]) -> None:
         region = self.multiworld.get_region("Island", self.player)
 
         loc = SpiritIslandLocation(
@@ -318,9 +321,13 @@ class SpiritIslandWorld(World):
             region
         )
         loc.progress_type = LocationProgressType.PRIORITY
-        if card.spirit in self.options.spirit_aspect_locked.parsed:
-            loc.access_rule = lambda state, \
-                spirit=card.spirit: state.has(spirit.full_name, self.player, self.options.spirit_shards.value)
+
+        locked = set(self.options.spirit_aspect_locked.parsed)
+
+        if spirits_aspects.issubset(locked):
+            required_count = self.options.spirit_shards.value
+            loc.access_rule = lambda state, sa=spirits_aspects, req=required_count: \
+                any(state.has(spirit.full_name, self.player, req) for spirit in sa)
 
         region.locations.append(loc)
 

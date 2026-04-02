@@ -2,7 +2,7 @@ from collections import defaultdict
 
 from BaseClasses import Item
 
-from .SpiritIslandLevels import Aspect, Powercard, Spirit
+from .SpiritIslandLevels import Aspect, Element, Powercard, Spirit
 
 
 class SpiritIslandItem(Item):
@@ -18,7 +18,7 @@ item_id_to_name: dict[int, str] = {}
 item_name_to_id: dict[str, int] = {}
 
 items = ["+1 Energy", "+1 Cardplay", "+1 Blight"] + [(card.value) for card in Powercard] \
-    + [sa.full_name for sa in list(Spirit) + list(Aspect)] + filler_items
+    + [sa.full_name for sa in list(Spirit) + list(Aspect)] + [element.value for element in Element] + filler_items
 
 for i, item in enumerate(items):
     idx = i + si_base

@@ -24,6 +24,7 @@ The following items are available in the Randomizer:
 - Extra cardplays per turn (+1 Cardplay)
 - Extra blight at the start of the game (+1 Blight)
 - Spirits and aspects unlocks (if `Enabled spirit & aspect unlock items` is selected)
+- Elements (filler items, last one turn)
 - Friendly greetings from spirits (filler items)
 
 ## Locations

@@ -399,6 +399,20 @@ class ExtraCopiesOfSpirits(Range):
     range_start = 0
     range_end = 3
 
+class ElementsFillRatio(Range):
+    """What percentage of filler items (after filling with extra spirits) should be +element.
+
+    0 means no filler items are +element.
+    100 means all filler items are +element.
+
+    Bonus elements last only a single turn.
+    Fill items that are not +element, are friendly greetings that do not have an effect on the game.
+    """
+    display_name = "Elements Fill Ratio"
+    default = 50
+    range_start = 0
+    range_end = 100
+
 si_option_groups = [
     OptionGroup("Energy and Cardplays", [
         StartingEnergy, MaxEnergy, StartingCardplays, MaxCardplays, StartingBlight, MaxBlight
@@ -410,7 +424,7 @@ si_option_groups = [
         SpoilLocations, HintReceivedCards, PrioritisedShuffle, RemoveCardsWhenFill
     ]),
     OptionGroup("Sharding & Filler", [
-        SpiritShards, ExtraCopiesOfSpirits
+        SpiritShards, ExtraCopiesOfSpirits, ElementsFillRatio
     ])
 ]
 
@@ -440,6 +454,7 @@ class SpiritIslandOptions(PerGameCommonOptions):
 
     spirit_shards: SpiritShards
     copies_of_spirit: ExtraCopiesOfSpirits
+    elements_fill_ratio: ElementsFillRatio
 
     def __post_init__(self):
         self.goals_parsed = None

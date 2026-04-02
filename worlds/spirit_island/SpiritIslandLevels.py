@@ -11,6 +11,15 @@ class ContentSource(Enum):
     NI = "Nature Incarnate"
     HORIZONS = "Horizons of Spirit Island"
 
+class Element(Enum):
+    SUN = "Sun"
+    MOON = "Moon"
+    FIRE = "Fire"
+    AIR = "Air"
+    WATER = "Water"
+    EARTH = "Earth"
+    PLANT = "Plant"
+    ANIMAL = "Animal"
 
 class PlayableSpirit(metaclass=EnumMeta):
 

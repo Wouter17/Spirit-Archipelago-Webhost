@@ -9,7 +9,7 @@ from worlds.AutoWorld import WebWorld, World
 from .Items import SpiritIslandItem, filler_items, item_descriptions, item_id_to_name, item_name_groups, item_name_to_id
 from .Locations import SpiritIslandLocation, defeat_with_string, si_location_id_to_name, si_location_name_to_id
 from .Options import SpiritIslandOptions, map_str_to_spirit_aspect, si_option_groups
-from .SpiritIslandLevels import Adversary, Aspect, CardType, ContentSource, Powercard, Spirit
+from .SpiritIslandLevels import Adversary, Aspect, CardType, ContentSource, Element, Powercard, Spirit
 
 
 class SpiritIslandWeb(WebWorld):
@@ -241,6 +241,13 @@ class SpiritIslandWorld(World):
                 ]
         self.itempool.extend(extra_copies)
         remaining -= len(extra_copies)
+
+        # Element filler
+        element_filler_count = int(remaining * (float(self.options.elements_fill_ratio) / 100.0))
+        element_filler = [self.random.choice(list(Element)).value for _ in range(element_filler_count)]
+        for item_name in element_filler:
+            self.itempool.append(self.create_item(item_name, ItemClassification.filler))
+        remaining -= element_filler_count
 
         # Useless filler
         random_filler_items = [self.get_filler_item_name() for _ in range(remaining)]

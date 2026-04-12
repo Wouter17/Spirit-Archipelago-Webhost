@@ -461,7 +461,7 @@ class Powercard(Enum):
     Share_Secrets_of_Survival = "Share Secrets of Survival"
     Study_the_Invaders_Fears = "Study the Invaders' Fears"
     Dissolving_Vapors = "Dissolving Vapors"
-    Flowing_and_Silent_Forms_Dart_By = "Flowing and Silent Forms Dart By"
+    Flowing_And_Silent_Forms_Dart_By = "Flowing And Silent Forms Dart By"
     The_Fog_Closes_In = "The Fog Closes In"
     Unnerving_Pall = "Unnerving Pall"
     Boon_of_Reimagining = "Boon of Reimagining"
@@ -811,7 +811,7 @@ card_to_cardtype = {
     Powercard.Share_Secrets_of_Survival: CardType.Unique,
     Powercard.Study_the_Invaders_Fears: CardType.Unique,
     Powercard.Dissolving_Vapors: CardType.Unique,
-    Powercard.Flowing_and_Silent_Forms_Dart_By: CardType.Unique,
+    Powercard.Flowing_And_Silent_Forms_Dart_By: CardType.Unique,
     Powercard.The_Fog_Closes_In: CardType.Unique,
     Powercard.Unnerving_Pall: CardType.Unique,
     Powercard.Boon_of_Reimagining: CardType.Unique,
@@ -983,7 +983,7 @@ unique_to_spirit = {
     Powercard.Share_Secrets_of_Survival: Spirit.Memory,
     Powercard.Study_the_Invaders_Fears: Spirit.Memory,
     Powercard.Dissolving_Vapors: Spirit.Shroud,
-    Powercard.Flowing_and_Silent_Forms_Dart_By: Spirit.Shroud,
+    Powercard.Flowing_And_Silent_Forms_Dart_By: Spirit.Shroud,
     Powercard.The_Fog_Closes_In: Spirit.Shroud,
     Powercard.Unnerving_Pall: Spirit.Shroud,
     Powercard.Boon_of_Reimagining: Spirit.Starlight,
@@ -1307,7 +1307,7 @@ card_to_expansion = {
     Powercard.Share_Secrets_of_Survival: ContentSource.JE,
     Powercard.Study_the_Invaders_Fears: ContentSource.JE,
     Powercard.Dissolving_Vapors: ContentSource.JE,
-    Powercard.Flowing_and_Silent_Forms_Dart_By: ContentSource.JE,
+    Powercard.Flowing_And_Silent_Forms_Dart_By: ContentSource.JE,
     Powercard.The_Fog_Closes_In: ContentSource.JE,
     Powercard.Unnerving_Pall: ContentSource.JE,
     Powercard.Boon_of_Reimagining: ContentSource.JE,

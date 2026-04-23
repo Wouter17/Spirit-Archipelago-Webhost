@@ -9,12 +9,14 @@ from worlds.AutoWorld import WebWorld, World
 from .Items import SpiritIslandItem, filler_items, item_descriptions, item_id_to_name, item_name_groups, item_name_to_id
 from .Locations import SpiritIslandLocation, defeat_with_string, si_location_id_to_name, si_location_name_to_id
 from .Options import SpiritIslandOptions, map_str_to_spirit_aspect, si_option_groups
+from .Presets import extra_presets
 from .SpiritIslandLevels import Adversary, Aspect, CardType, ContentSource, Element, Powercard, Spirit
 
 
 class SpiritIslandWeb(WebWorld):
     rich_text_options_doc = True
     option_groups = si_option_groups
+    options_presets = extra_presets
     theme = "grassFlowers"
 
     bug_report_page = "https://github.com/wouter17/Spirit-Archipelago/issues"
@@ -99,8 +101,8 @@ class SpiritIslandWorld(World):
         self.connect_regions("Menu", "Island")
 
         # Unique card locations
-        selected_spirits_and_aspects = [sa for sa in (map_str_to_spirit_aspect(
-            s) for s in self.options.spirit_play.value) if sa is not None]
+        selected_spirits_and_aspects = [sa for sa in (map_str_to_spirit_aspect(s)
+            for s in self.options.spirit_play.value) if sa is not None]
         unique_pool: defaultdict[Powercard, set[Spirit | Aspect]] = defaultdict(set)
         for spirit_aspect in selected_spirits_and_aspects:
             for unique in spirit_aspect.uniques:

@@ -102,6 +102,7 @@ class BossGoals(OptionSet):
                          for adv in Adversary
                          for spirit_name in (*(spirit.full_name for spirit in list(Spirit) + list(Aspect)), "Any")
                          for diff in range(0, 7)])
+    default = frozenset((valid_keys[0],))
 
     @property
     def parsed(self) -> list[tuple[Adversary, int, Spirit | Aspect | None]]:

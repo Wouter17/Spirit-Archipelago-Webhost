@@ -225,7 +225,7 @@ class SpiritIslandWorld(World):
 
         # Extra copy filler
         extra_copies = []
-        if self.options.copies_of_spirit.value > 0:
+        if self.options.copies_of_spirit.value > 0 and len(self.options.spirit_aspect_locked.value) > 0:
             copies = self.options.copies_of_spirit.value
             max_copies = remaining // len(self.options.spirit_aspect_locked.value)
             if copies <= max_copies:

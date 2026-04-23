@@ -53,7 +53,7 @@ def parse_boss_option(entry: str) -> tuple[Adversary, int, Spirit | Aspect | Non
         difficulty = int(difficulty_raw)
     except ValueError as err:
         raise OptionError(
-            f"Difficulty must be an integer in '{entry}', got '{difficulty_raw}'") from err
+            f"Level must be an integer in '{entry}', got '{difficulty_raw}'") from err
 
     try:
         spirit = map_str_to_spirit_aspect(spirit_raw)
@@ -91,10 +91,10 @@ class SpiritIslandToggle(Toggle):
 
 
 class BossGoals(OptionSet):
-    """Which spirits, need to defeat which adversaries, at what difficulty, to have completed the game.
+    """Which spirits, need to defeat which adversaries, at what level, to have completed the game.
 
-        Defeating an advisary at a difficulty higher than the target difficulty also counts as defeating them on a lower difficulty.
-        Selecting multiple difficulties for the same spirit + difficulty will have the lower values ignored.
+        Defeating an adversary at a level higher than the target level also counts as defeating them on a lower level.
+        Selecting multiple levels for the same spirit + adversary will have the lower values ignored.
         Selecting many goals may introduce a lot of useless filler items.
     """
     display_name = "Victory Goals"
@@ -109,7 +109,7 @@ class BossGoals(OptionSet):
 
 
 class AdvancedBossGoals(OptionDict):
-    """Which spirits, need to defeat which adversaries, at what difficulty, to have completed the game.
+    """Which spirits, need to defeat which adversaries, at what level, to have completed the game.
 
         This setting replaces the settings in "Victory Goals" if present.
         This setting allows you to specify the boss as an yaml in the form.

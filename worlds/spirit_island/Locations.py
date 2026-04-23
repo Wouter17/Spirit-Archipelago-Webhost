@@ -10,7 +10,7 @@ class SpiritIslandLocation(Location):
 def defeat_with_string(adversary: Adversary, difficulty: int, spirit: Spirit | Aspect | None, ed=False) -> str:
     return (
         f"Defeat{'ed' if ed else ''} {adversary.value} with {spirit.full_name if spirit is not None else 'Any'} "
-        f"on difficulty {difficulty}"
+        f"on level {difficulty}"
     )
 
 

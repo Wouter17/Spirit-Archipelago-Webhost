@@ -231,7 +231,7 @@ class SpiritIslandWorld(World):
             if copies <= max_copies:
                 extra_copies = [
                     self.create_item(spirit_aspect.full_name,
-                                     ItemClassification.useful & ItemClassification.filler)
+                                     ItemClassification.useful | ItemClassification.filler)
                     for spirit_aspect in self.options.spirit_aspect_locked.parsed
                     for _ in range(copies)
                 ]
@@ -241,7 +241,7 @@ class SpiritIslandWorld(World):
 
                 extra_copies = [
                     self.create_item(spirits[i % len(spirits)].full_name,
-                                    ItemClassification.useful & ItemClassification.filler)
+                                    ItemClassification.useful | ItemClassification.filler)
                     for i in range(remaining)
                 ]
         self.itempool.extend(extra_copies)

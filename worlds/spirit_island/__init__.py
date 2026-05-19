@@ -326,10 +326,20 @@ class SpiritIslandWorld(World):
 
         locked = set(self.options.spirit_aspect_locked.parsed)
 
-        if spirits_aspects.issubset(locked):
+        base_unlocking_spirits = {sa.spirit for sa in spirits_aspects}
+        # Check if the spirit itself is locked
+        if base_unlocking_spirits.issubset(locked):
             required_count = self.options.spirit_shards.value
-            loc.access_rule = lambda state, sa=spirits_aspects, req=required_count: \
-                any(state.has(spirit.full_name, self.player, req) for spirit in sa)
+            # Check if the specific aspect is locked
+            if spirits_aspects.issubset(locked):
+                # In case the aspect is locked, we need both the spirit and the aspect
+                loc.access_rule = lambda state, sa=spirits_aspects, req=required_count: \
+                    any(state.has_all_counts(
+                        {spirit.full_name: req, spirit.spirit.full_name: req}, self.player) for spirit in sa)
+            else:
+                # Otherwise we only need the spirit
+                loc.access_rule = lambda state, bus=base_unlocking_spirits, req=required_count: \
+                        any(state.has(spirit.full_name, self.player, req) for spirit in bus)
 
         region.locations.append(loc)
 

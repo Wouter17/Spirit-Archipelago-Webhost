@@ -34,8 +34,10 @@ for card in Powercard:
 item_name_groups["spirits"] = {s.full_name for s in Spirit}
 item_name_groups["aspects"] = {a.full_name for a in Aspect}
 item_name_groups["filler"] = set(filler_items)
+item_name_groups["elements"] = {e.value for e in Element}
 
 item_descriptions = dict.fromkeys(filler_items, "an item that does nothing")
+item_descriptions |= {element.value: f"Grants one {element.value} for a single turn" for element in Element}
 item_descriptions["+1 Energy"] = "One extra energy per turn with each spirit"
 item_descriptions["+1 Cardplay"] = "One extra cardplay per turn with each spirit"
 item_descriptions["+1 Blight"] = "One extra blight when starting a new game"

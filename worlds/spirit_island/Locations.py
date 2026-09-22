@@ -19,12 +19,15 @@ si_location_id_to_name: dict[int, str] = {}
 
 spirit_with_aspects = list(Spirit) + list(Aspect)
 
-items = [defeat_with_string(adversary, difficulty, spirit) for difficulty in range(0, 7)
-         for adversary in Adversary for spirit in [*spirit_with_aspects, None]] \
+items = [defeat_location for difficulty in range(0, 7)
+        for adversary in Adversary for spirit in [*spirit_with_aspects, None]
+        for defeat_location in (
+            defeat_with_string(adversary, difficulty, spirit),
+            defeat_with_string(adversary, difficulty, spirit) + " (victory condition)")
+        ] \
     + [f"Play: {card.value}" for card in Powercard]
 
 base_offset = 1
-for i, item in enumerate(items):
-    idx = i + base_offset
+for idx, item in enumerate(items, base_offset):
     si_location_name_to_id[item] = idx
     si_location_id_to_name[idx] = item

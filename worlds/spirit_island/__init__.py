@@ -167,12 +167,11 @@ class SpiritIslandWorld(World):
             for diff in range(0, difficulty + 1):
                 self.add_boss_location(boss, diff, spirit, diff == difficulty)
 
-            boss_event_names.append(
-                defeat_with_string(boss, difficulty, spirit, True))
+            boss_event_names.append(defeat_with_string(boss, difficulty, spirit))
 
         # Victory requires ALL boss defeat events
-        self.multiworld.completion_condition[self.player] = \
-            lambda state, boss_event_names=boss_event_names: state.has_all(boss_event_names, self.player)
+        self.multiworld.completion_condition[self.player] = lambda state, boss_event_names=boss_event_names: \
+            state.has("Shard of the island", self.player, len(boss_event_names))
 
     def create_items(self):
         self.itempool = []
@@ -380,11 +379,11 @@ class SpiritIslandWorld(World):
         # Victory condition location
         if goal:
             vic_name = f"{name} (victory condition)"
-            vic_loc = create_location(vic_name, None)
+            vic_loc = create_location(vic_name, self.location_name_to_id[vic_name])
 
-            victory_item = self.create_event(
-                defeat_with_string(boss, difficulty, spirit, True),
-                ItemClassification.progression_skip_balancing
+            victory_item = self.create_item(
+                "Shard of the island",
+                ItemClassification.progression
             )
 
             vic_loc.place_locked_item(victory_item)

@@ -17,7 +17,7 @@ si_base = 0x57696c6c
 item_id_to_name: dict[int, str] = {}
 item_name_to_id: dict[str, int] = {}
 
-items = ["+1 Energy", "+1 Cardplay", "+1 Blight"] + [(card.value) for card in Powercard] \
+items = ["+1 Energy", "+1 Cardplay", "+1 Blight", "Shard of the island"] + [(card.value) for card in Powercard] \
     + [sa.full_name for sa in list(Spirit) + list(Aspect)] + [element.value for element in Element] + filler_items
 
 for i, item in enumerate(items):
@@ -25,6 +25,7 @@ for i, item in enumerate(items):
     item_id_to_name[idx] = item
     item_name_to_id[item] = idx
 
+# Name groups
 item_name_groups: defaultdict[str, set[str]] = defaultdict(set)
 for card in Powercard:
     if card.spirit is not None:
@@ -36,6 +37,7 @@ item_name_groups["aspects"] = {a.full_name for a in Aspect}
 item_name_groups["filler"] = set(filler_items)
 item_name_groups["elements"] = {e.value for e in Element}
 
+# Item descriptions
 item_descriptions = dict.fromkeys(filler_items, "an item that does nothing")
 item_descriptions |= {element.value: f"Grants one {element.value} for a single turn" for element in Element}
 item_descriptions["+1 Energy"] = "One extra energy per turn with each spirit"

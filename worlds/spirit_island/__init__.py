@@ -324,9 +324,9 @@ class SpiritIslandWorld(World):
         locked = set(self.options.spirit_aspect_locked.parsed)
 
         base_unlocking_spirits = {sa.spirit for sa in spirits_aspects}
+        required_count = self.options.spirit_shards.value
         # Check if the spirit itself is locked
         if base_unlocking_spirits.issubset(locked):
-            required_count = self.options.spirit_shards.value
             # Check if the specific aspect is locked
             if spirits_aspects.issubset(locked):
                 # In case the aspect is locked, we need both the spirit and the aspect
@@ -337,6 +337,10 @@ class SpiritIslandWorld(World):
                 # Otherwise we only need the spirit
                 loc.access_rule = lambda state, bus=base_unlocking_spirits, req=required_count: \
                         any(state.has(spirit.full_name, self.player, req) for spirit in bus)
+        # If the card is only added by aspects and the base in unlocked we need any of the aspects
+        elif all(isinstance(sa, Aspect) for sa in spirits_aspects) and spirits_aspects.issubset(locked):
+            loc.access_rule = lambda state, sa=spirits_aspects, req=required_count: \
+                any(state.has(spirit.full_name, self.player, req) for spirit in sa)
 
         region.locations.append(loc)
 

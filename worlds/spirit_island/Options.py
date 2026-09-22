@@ -172,7 +172,7 @@ class AdvancedBossGoals(OptionDict):
             raise OptionError(f"Maximum number of spirits ({self.value['max']}) "
                               f"should be larger than minimum ({self.value['min']})")
 
-    def parsed(self, random: Random) -> None | list[tuple[Adversary, int, Spirit | Aspect | None]]:
+    def parsed(self, random: Random) -> list[tuple[Adversary, int, Spirit | Aspect | None]] | None:
         if self.value == {}:
             return None
         weighted_list: list[tuple[tuple[Adversary,

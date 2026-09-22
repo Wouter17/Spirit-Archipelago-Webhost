@@ -2,7 +2,7 @@ from collections import defaultdict
 from collections.abc import Callable, Mapping
 from typing import Any, TextIO
 
-from BaseClasses import CollectionState, ItemClassification, Location, LocationProgressType, Region, Tutorial
+from BaseClasses import CollectionState, ItemClassification, Location, Region, Tutorial
 from Options import OptionError
 from worlds.AutoWorld import WebWorld, World
 
@@ -154,7 +154,7 @@ class SpiritIslandWorld(World):
             self.add_powercard_location(card)
 
         boss_event_names = []
-        previous: tuple[None|Adversary, None|Spirit|Aspect] = (None, None)
+        previous: tuple[Adversary | None, Spirit | Aspect | None] = (None, None)
 
         # Boss locations
         for boss, difficulty, spirit in sorted(self.options.parsed_goals(self.random),
@@ -296,8 +296,7 @@ class SpiritIslandWorld(World):
             "goals": goals
         }
 
-    def add_powercard_location(self, card: Powercard,
-                               progression: LocationProgressType = LocationProgressType.DEFAULT) -> None:
+    def add_powercard_location(self, card: Powercard) -> None:
         region = self.multiworld.get_region("Island", self.player)
 
         loc = SpiritIslandLocation(
@@ -306,7 +305,6 @@ class SpiritIslandWorld(World):
             self.location_name_to_id[f"Play: {card.value}"],
             region
         )
-        loc.progress_type = progression
 
         # Becomes reachable when the card is unlocked
         loc.access_rule = lambda state, card=card: state.has(card.value, self.player)
@@ -322,7 +320,6 @@ class SpiritIslandWorld(World):
             self.location_name_to_id[f"Play: {card.value}"],
             region
         )
-        loc.progress_type = LocationProgressType.PRIORITY
 
         locked = set(self.options.spirit_aspect_locked.parsed)
 
@@ -364,7 +361,6 @@ class SpiritIslandWorld(World):
 
         def create_location(name, loc_id):
             loc = SpiritIslandLocation(self.player, name, loc_id, region)
-            loc.progress_type = LocationProgressType.PRIORITY
 
             rule = make_access_rule(spirit)
             if rule:

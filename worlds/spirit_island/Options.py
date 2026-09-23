@@ -236,6 +236,18 @@ class AdvancedBossGoals(OptionDict):
         return [v for _, v in keys[:total_spirit]]
 
 
+class IslandShardsReduction(Range):
+    """How many island shards (victory goals) you may skip whilst still completing the game.
+
+    I.e. if this value is 1 and you have 4 goals the game will complete once you achieved 3 goals.
+    If this value is greater than or equal to the number of goals it will be set to goals - 1.
+    """
+    display_name = "Island shards offset"
+    range_start = 0
+    range_end = len(Adversary) * (len(Spirit) + len(Aspect))
+    default = 0
+
+
 class StartingEnergy(Range):
     """The starting amount energy per turn offset the spirit starts with (-1 would mean you get 1 less energy per turn. 2 Would mean you get +2 energy per turn)
     """
@@ -415,7 +427,7 @@ class ElementsFillRatio(Range):
     range_end = 100
 
 si_option_groups = [
-    OptionGroup("Energy and Cardplays", [
+    OptionGroup("Energy, Cardplays and Blight", [
         StartingEnergy, MaxEnergy, StartingCardplays, MaxCardplays, StartingBlight, MaxBlight
     ]),
     OptionGroup("Unlocks", [
@@ -434,6 +446,7 @@ si_option_groups = [
 class SpiritIslandOptions(PerGameCommonOptions):
     goals: BossGoals
     advanced_goals: AdvancedBossGoals
+    island_shards_reduction: IslandShardsReduction
 
     enabled_expansions: EnabledExpansions
     spirit_play: SpiritPlayOptionSet

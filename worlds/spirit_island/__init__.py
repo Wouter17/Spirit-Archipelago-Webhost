@@ -170,8 +170,9 @@ class SpiritIslandWorld(World):
             boss_event_names.append(defeat_with_string(boss, difficulty, spirit))
 
         # Victory requires ALL boss defeat events
-        self.multiworld.completion_condition[self.player] = lambda state, boss_event_names=boss_event_names: \
-            state.has("Shard of the island", self.player, len(boss_event_names))
+        required_island_shards = max(1, len(boss_event_names) - self.options.island_shards_reduction)
+        self.multiworld.completion_condition[self.player] = lambda state, count=required_island_shards: \
+            state.has("Shard of the island", self.player, count)
 
     def create_items(self):
         self.itempool = []

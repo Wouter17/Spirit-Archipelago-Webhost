@@ -137,7 +137,7 @@ class Aspect(Enum, PlayableSpirit):
 
     @property
     def uniques(self) -> "set[Powercard]":
-        cards = {card for card in Powercard if card.spirit == self.spirit}
+        cards = self.spirit.uniques
         match self:
             case Aspect.Sunshine:
                 cards.remove(Powercard.Boon_of_Vigor)

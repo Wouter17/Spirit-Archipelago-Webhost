@@ -39,3 +39,19 @@ class SIEnumTests(unittest.TestCase):
                 unique_card_spirit = unique_to_spirit.get(card)
                 self.assertIsNotNone(unique_card_spirit)
                 self.assertIsInstance(unique_card_spirit, Spirit)
+
+    def test_green_uniques(self):
+        green_uniques = {
+            Powercard.Fields_Choked_with_Growth,
+            Powercard.Gift_of_Proliferation,
+            Powercard.Overgrow_in_a_Night,
+            Powercard.Stem_the_Flow_of_Fresh_Water
+        }
+        self.assertSetEqual(green_uniques, Spirit.Green.uniques)
+        self.assertSetEqual(green_uniques, Aspect.Regrowth.uniques)
+        self.assertSetEqual({
+            Powercard.Fields_Choked_with_Growth,
+            Powercard.Belligerent_and_Aggressive_Crops,
+            Powercard.Overgrow_in_a_Night,
+            Powercard.Stem_the_Flow_of_Fresh_Water
+        }, Aspect.Tangles.uniques)

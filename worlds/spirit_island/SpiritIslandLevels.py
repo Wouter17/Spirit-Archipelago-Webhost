@@ -352,7 +352,6 @@ class Powercard(Enum):
     Golds_Allure = "Gold's Allure"
     Grant_Hatred_a_Ravenous_Form = "Grant Hatred a Ravenous Form"
     Grasping_Tide = "Grasping Tide"
-    Growth_Through_Sacrifice = "Growth Through Sacrifice"
     Guardian_Serpents = "Guardian Serpents"
     Guard_the_Healing_Land = "Guard the Healing Land"
     Guide_the_Way_on_Feathered_Wings = "Guide the Way on Feathered Wings"
@@ -700,7 +699,6 @@ card_to_cardtype = {
     Powercard.Golds_Allure: CardType.Minor,
     Powercard.Grant_Hatred_a_Ravenous_Form: CardType.Major,
     Powercard.Grasping_Tide: CardType.Unique,
-    Powercard.Growth_Through_Sacrifice: CardType.Minor,
     Powercard.Guardian_Serpents: CardType.Minor,
     Powercard.Guard_the_Healing_Land: CardType.Unique,
     Powercard.Guide_the_Way_on_Feathered_Wings: CardType.Unique,
@@ -1195,7 +1193,6 @@ card_to_expansion = {
     Powercard.Golds_Allure: ContentSource.BC,
     Powercard.Grant_Hatred_a_Ravenous_Form: ContentSource.BC,
     Powercard.Grasping_Tide: ContentSource.BASE,
-    Powercard.Growth_Through_Sacrifice: ContentSource.BC,
     Powercard.Guardian_Serpents: ContentSource.BC,
     Powercard.Guard_the_Healing_Land: ContentSource.BASE,
     Powercard.Guide_the_Way_on_Feathered_Wings: ContentSource.JE,

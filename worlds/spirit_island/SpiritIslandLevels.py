@@ -1,5 +1,6 @@
 from abc import abstractmethod  # noqa: N999
-from enum import Enum, EnumMeta
+from enum import Enum
+from typing import TYPE_CHECKING, Protocol
 
 
 class ContentSource(Enum):
@@ -21,7 +22,7 @@ class Element(Enum):
     PLANT = "Plant"
     ANIMAL = "Animal"
 
-class PlayableSpirit(metaclass=EnumMeta):
+class PlayableSpirit(Protocol):
 
     @property
     @abstractmethod
@@ -39,7 +40,7 @@ class PlayableSpirit(metaclass=EnumMeta):
         pass
 
 
-class Spirit(Enum, PlayableSpirit):
+class Spirit(Enum):
     Lightning = "Lightning's Swift Strike"
     River = "River Surges in Sunlight"
     Shadows = "Shadows Flicker Like Flame"
@@ -92,9 +93,10 @@ class Spirit(Enum, PlayableSpirit):
             Powercard.Belligerent_and_Aggressive_Crops,
             Powercard.Smite_the_Land_with_Fulmination,
         }
+if TYPE_CHECKING:
+    _: PlayableSpirit = Spirit.Lightning
 
-
-class Aspect(Enum, PlayableSpirit):
+class Aspect(Enum):
     Pandemonium = "Pandemonium"
     Wind = "Wind"
     Sunshine = "Sunshine"
@@ -169,7 +171,8 @@ class Aspect(Enum, PlayableSpirit):
                 # minor
                 cards.add(Powercard.Voracious_Growth)
         return cards
-
+if TYPE_CHECKING:
+    _: PlayableSpirit = Aspect.DarkFire
 
 aspect_to_spirit = {
     Aspect.Pandemonium: Spirit.Lightning,

@@ -27,7 +27,7 @@ items = [defeat_location for difficulty in range(0, 7)
         ] \
     + [f"Play: {card.value}" for card in Powercard]
 
-base_offset = 1
+base_offset = 0x57696c6c
 for idx, item in enumerate(items, base_offset):
     si_location_name_to_id[item] = idx
     si_location_id_to_name[idx] = item

@@ -153,7 +153,7 @@ class SpiritIslandWorld(World):
         for card in card_pool:
             self.add_powercard_location(card)
 
-        boss_event_names = []
+        boss_item_names: list[str] = []
         previous: tuple[Adversary | None, Spirit | Aspect | None] = (None, None)
 
         # Boss locations
@@ -167,10 +167,12 @@ class SpiritIslandWorld(World):
             for diff in range(0, difficulty + 1):
                 self.add_boss_location(boss, diff, spirit, diff == difficulty)
 
-            boss_event_names.append(defeat_with_string(boss, difficulty, spirit))
+            boss_item_names.append(f"{defeat_with_string(boss, difficulty, spirit)} (victory condition)")
+        self.boss_item_names = boss_item_names
 
         # Victory requires ALL boss defeat events
-        required_island_shards = max(1, len(boss_event_names) - self.options.island_shards_reduction)
+        required_island_shards = max(1, len(boss_item_names) - self.options.island_shards_reduction)
+        self.required_island_shards = required_island_shards
         self.multiworld.completion_condition[self.player] = lambda state, count=required_island_shards: \
             state.has("Shard of the island", self.player, count)
 
@@ -280,7 +282,7 @@ class SpiritIslandWorld(World):
         card_pool = [card.value for card in Powercard
                             if (self.options.lock_not_in_play_cards.result or (card.expansion in enabled_sources)) \
                             and card.card_type is not CardType.Unique]
-        goals = [defeat_with_string(*goal) for goal in self.options.parsed_goals(self.random)]
+        goals = [self.location_name_to_id[name] for name in self.boss_item_names]
         return {
             "base_locked_cards": card_pool,
             "base_locked_spirits": [s.value for s in self.options.spirit_aspect_locked.spirits],
@@ -293,7 +295,8 @@ class SpiritIslandWorld(World):
             "hint_cards": self.options.hint_received_cards.value,
             "prioritised_shuffle": self.options.prioritised_shuffle.value,
             "deathlink": self.options.deathlink.value,
-            "goals": goals
+            "required_goals": self.required_island_shards,
+            "goals": goals,
         }
 
     def add_powercard_location(self, card: Powercard) -> None:

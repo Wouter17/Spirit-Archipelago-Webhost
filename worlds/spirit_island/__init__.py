@@ -297,6 +297,7 @@ class SpiritIslandWorld(World):
             "deathlink": self.options.deathlink.value,
             "required_goals": self.required_island_shards,
             "goals": goals,
+            "version": self.world_version.as_simple_string()
         }
 
     def add_powercard_location(self, card: Powercard) -> None:

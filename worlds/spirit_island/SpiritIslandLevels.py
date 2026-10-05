@@ -202,7 +202,7 @@ aspect_to_spirit = {
     Aspect.Unconstrained: Spirit.Fangs,
     Aspect.Intensify: Spirit.Memory,
     Aspect.Mentor: Spirit.Memory,
-    Aspect.Stranded: Spirit.Shadows,
+    Aspect.Stranded: Spirit.Shroud,
     Aspect.Tactician: Spirit.Thunderspeaker,
     Aspect.Warrior: Spirit.Thunderspeaker,
     Aspect.Nourishing: Spirit.Earth
